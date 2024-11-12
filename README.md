@@ -16,12 +16,12 @@ This is a take home challenge for a software engineer position. Requirements are
 This exercise include random generator for the transaction data. The utility is in `cmd/gen-txns-csv` and it can be built
 independently of the project. However, a docker version is available:
 ```sh
-docker compose exec gen-txns-csv -file files/transactions.csv
+docker compose run gen-txns-csv -file files/transactions.csv
 ```
 
 There are additional parameters that change amount of transactions, dates and amount:
 ```sh
-docker compose exec gen-txns-csv -help
+docker compose run gen-txns-csv -help
 ```
 
 ## Processing transactions

@@ -1,1 +1,1 @@
-module account-balance
+module github.com/cedmundo/account-balance
