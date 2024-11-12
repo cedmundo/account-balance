@@ -1,0 +1,17 @@
+{
+  "version": "2",
+  "sql": [
+    {
+      "engine": "postgresql",
+      "queries": ["db/query.sql"],
+      "schema": ["db/schema.sql"],
+      "gen": {
+        "go": {
+          "out": "dao",
+          "package": "dao",
+          "sql_package": "pgx/v5"
+        }
+      }
+    }
+  ]
+}
