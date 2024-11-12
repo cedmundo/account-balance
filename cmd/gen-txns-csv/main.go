@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"encoding/csv"
 	"flag"
 	"fmt"
@@ -100,8 +99,7 @@ func main() {
 		}
 	}(file)
 
-	bufOutput := bufio.NewWriter(file)
-	writer := csv.NewWriter(bufOutput)
+	writer := csv.NewWriter(file)
 	if err = writer.Write([]string{"id", "date", "amount"}); err != nil {
 		log.Fatalf("Error writing header to file: %v", err)
 	}
@@ -118,9 +116,6 @@ func main() {
 		}
 	}
 
-	err = bufOutput.Flush()
-	if err != nil {
-		log.Fatalf("Error flushing buffer: %v", err)
-	}
+	writer.Flush()
 	log.Printf("Wrote %d transactions to %s", flagGenerate(), *pFile)
 }
