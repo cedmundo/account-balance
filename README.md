@@ -81,3 +81,71 @@ files/      <- CSV and support files (automatically mounted).
 services/   <- Go package, (github.com/cedmundo/account-balance/services) that manages the business logic.
 static/     <- Templates and static web content.
 ```
+
+Commands in `cmd/` use all services defined under `services`, which include:
+
+* Account retrieval or creation
+* Transaction processing (basic operations over decimals) and inserting
+* Balance update
+* Email rendering and sending
+
+## Decimals
+
+It is well known to [never use floats for money](https://husobee.github.io/money/float/2016/09/23/never-use-floats-for-currency.html), that's
+why I use `decimal.Decimal` in Go and use `DECIMAL(16, 2)` in PSQL for the money fields, Although I would still recommend
+to use a more specialized monetary type instead. This project doesn't include one because the currency is only MXN and
+was not actually in the specification, so I didn't want to add unnecessary complexity.
+
+## SQLc Generation
+
+This project uses [sqlc](https://docs.sqlc.dev/en/latest/) for code generation, queries are located at `db/query.sql` 
+and schema is located at `db/schema.sql` in a larger project I would also add migrations, however, this time it is only 
+needed to set the database once, that's why it is configured to run when creating the postgres node in the composer file.
+
+## Database Querying
+
+It is possible to plug a PostgresSQL console into the server and explore the database, to get the balance numbers just use the
+following query:
+
+```sql
+WITH balance AS (
+    SELECT
+        SUM(CASE WHEN operation = 'debit' THEN amount ELSE 0 END) AS total_debit,
+        SUM(CASE WHEN operation = 'debit' THEN 1 ELSE 0 END) AS debit_count,
+        SUM(CASE WHEN operation = 'credit' THEN amount ELSE 0 END) AS total_credit,
+        SUM(CASE WHEN operation = 'credit' THEN 1 ELSE 0 END) AS credit_count
+    FROM transactions WHERE account_id = 20
+) SELECT
+    balance.total_credit,
+    balance.total_debit,
+    balance.credit_count,
+    balance.debit_count,
+    balance.total_credit - balance.total_debit AS total_balance,
+    balance.total_credit / balance.credit_count AS avg_credit,
+    balance.total_debit / balance.debit_count AS avg_debit
+FROM balance;
+```
+
+Note that you might need to change the `account_id` from `20` to the ID you want to query, or remove it to perform a general
+report.
+
+## Batch processing
+
+The transaction processing is performed in a producer/consumer manner, each `worker` has its own database connection and
+pulls CSV records from a channel, then it returns its results into a reports channel which are reduced by the worker scheduler.
+
+The workflow is described as follows:
+```
+                    /- (<-CSVRecord) Worker 0 (->Report) -\
+                    |                                     |
+Transaction Service +- (<-CSVRecord) Worker 1 (->Report) -+- [ Worker Report Reduce ] - [ Balance Report ]  
+                    |                                     |
+                    \- (<-CSVRecord) Worker n (->Report) -/
+```
+
+The database insertion is also handled by the worker so they pull jobs with more or less same recurrence.
+
+## Content embed
+
+HTML email template and JSON localization messages are both [embed](https://pkg.go.dev/embed) into `proc-txns-csv` 
+executable so it is even easier to deploy because there is no need to drag `static` folder around.
