@@ -159,6 +159,11 @@ func main() {
 		log.Fatal("Could not process transactions:", err)
 	}
 
+	_, err = accountService.UpdateAccountBalance(backgroundContext, account, report)
+	if err != nil {
+		log.Fatal("Could not update balance data:", err)
+	}
+
 	err = emailService.SendReport(account, report)
 	if err != nil {
 		log.Fatal("Could not send report:", err)

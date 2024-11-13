@@ -37,3 +37,14 @@ func (s *AccountService) FetchOrCreateAccount(ctx context.Context, email, firstN
 
 	return account, nil
 }
+
+func (s *AccountService) UpdateAccountBalance(ctx context.Context, account dao.Account, report BalanceReport) (dao.Account, error) {
+	queries := dao.New(s.Database)
+	return queries.UpdateAccountBalance(ctx, dao.UpdateAccountBalanceParams{
+		LastBalanceAt:   sql.NullTime{Valid: true, Time: time.Now()},
+		TotalBalance:    sql.NullString{Valid: true, String: report.TotalBalance.String()},
+		AvgDebitAmount:  sql.NullString{Valid: true, String: report.AvgDebitAmount.String()},
+		AvgCreditAmount: sql.NullString{Valid: true, String: report.AvgCreditAmount.String()},
+		AccountID:       account.AccountID,
+	})
+}

@@ -107,3 +107,43 @@ func (q *Queries) InsertTransaction(ctx context.Context, arg InsertTransactionPa
 	err := row.Scan(&transaction_id)
 	return transaction_id, err
 }
+
+const updateAccountBalance = `-- name: UpdateAccountBalance :one
+UPDATE accounts
+    SET last_balance_at = $1, total_balance = $2, avg_debit_amount = $3, avg_credit_amount = $4
+    WHERE account_id = $5
+RETURNING account_id, first_name, last_name, email, locale, total_balance, avg_debit_amount, avg_credit_amount, last_balance_at, created_at, updated_at
+`
+
+type UpdateAccountBalanceParams struct {
+	LastBalanceAt   sql.NullTime
+	TotalBalance    sql.NullString
+	AvgDebitAmount  sql.NullString
+	AvgCreditAmount sql.NullString
+	AccountID       int64
+}
+
+func (q *Queries) UpdateAccountBalance(ctx context.Context, arg UpdateAccountBalanceParams) (Account, error) {
+	row := q.db.QueryRowContext(ctx, updateAccountBalance,
+		arg.LastBalanceAt,
+		arg.TotalBalance,
+		arg.AvgDebitAmount,
+		arg.AvgCreditAmount,
+		arg.AccountID,
+	)
+	var i Account
+	err := row.Scan(
+		&i.AccountID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.Locale,
+		&i.TotalBalance,
+		&i.AvgDebitAmount,
+		&i.AvgCreditAmount,
+		&i.LastBalanceAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}

@@ -26,6 +26,7 @@ var emailTemplate = template.Must(template.New("balance_report.html").Funcs(temp
 	},
 }).ParseFS(content, "static/email/balance_report.html"))
 
+// EmailData represents the data required to generate an email report for an account.
 type EmailData struct {
 	Account                dao.Account
 	TitleMsg               string
@@ -41,11 +42,13 @@ type EmailData struct {
 	Report                 BalanceReport
 }
 
+// EmailService manages sending emails and loading localization messages for emails.
 type EmailService struct {
 	PublicURL string
 	Messages  map[string]map[string]string
 }
 
+// LoadMessages loads localization messages
 func (s *EmailService) LoadMessages() error {
 	s.Messages = make(map[string]map[string]string)
 	jsonData, err := content.ReadFile("static/email/messages.json")
@@ -56,6 +59,7 @@ func (s *EmailService) LoadMessages() error {
 	return json.Unmarshal(jsonData, &s.Messages)
 }
 
+// SendReport sends a balance report to the specified account's email.
 func (s *EmailService) SendReport(account dao.Account, report BalanceReport) error {
 	var output io.Writer
 	accountID := account.AccountID

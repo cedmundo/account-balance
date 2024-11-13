@@ -24,6 +24,13 @@
                 "import": "github.com/shopspring/decimal",
                 "type": "Decimal"
               }
+            },
+            {
+              "db_type": "decimal",
+              "go_type": {
+                "import": "github.com/shopspring/decimal",
+                "type": "Decimal"
+              }
             }
           ]
         }

@@ -75,6 +75,7 @@ func (w *TransactionWorker) ValidateRecord(record CSVRecord) (txDate time.Time, 
 	return
 }
 
+// PullTransactions processes transaction records from the worker's transaction channel and inserts them into the database.
 func (w *TransactionWorker) PullTransactions() {
 	queries := dao.New(w.db)
 	now := time.Now()
@@ -92,6 +93,7 @@ func (w *TransactionWorker) PullTransactions() {
 			continue
 		}
 
+		// Perform basic calculations
 		month := performedAt.Month()
 		report.TransactionCount[int(month)] += 1
 		if operation == dao.TxOperationTypeDebit {
@@ -102,6 +104,7 @@ func (w *TransactionWorker) PullTransactions() {
 			report.CountCredit += 1
 		}
 
+		// Insert transaction into database
 		_, err = queries.InsertTransaction(w.ctx, dao.InsertTransactionParams{
 			AccountID:   w.accountID,
 			Operation:   operation,
