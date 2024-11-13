@@ -2,7 +2,7 @@
 
 This is a take home challenge for a software engineer position. Requirements are:
 
-* Process account balances from a file (`files/transactions.csv`).
+* Process account balances from a file (`support/files/transactions.csv`).
   * Calculate total balance.
   * Calculate number of transactions monthly.
   * Calculate average debit amount.

@@ -18,8 +18,8 @@
 # vendor/
 
 # Go workspace file
-go.work
-go.work.sum
+# go.work
+# go.work.sum
 
 # env file
 .env
@@ -28,5 +28,5 @@ go.work.sum
 .idea
 
 # ignore data
-data/**
-!data/**/
+support/data/**
+!support/data/**/
