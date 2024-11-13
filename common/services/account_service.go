@@ -4,6 +4,7 @@ import (
 	"common/dao"
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 )
 
@@ -16,7 +17,7 @@ type AccountService struct {
 func (s *AccountService) FetchOrCreateAccount(ctx context.Context, email, firstName, lastName string) (dao.Account, error) {
 	queries := dao.New(s.Database)
 	account, err := queries.GetAccountByEmail(ctx, email)
-	if err != nil {
+	if errors.Is(err, sql.ErrNoRows) {
 		now := time.Now()
 		account = dao.Account{
 			FirstName: firstName,
@@ -33,6 +34,8 @@ func (s *AccountService) FetchOrCreateAccount(ctx context.Context, email, firstN
 			CreatedAt: account.CreatedAt,
 			UpdatedAt: account.UpdatedAt,
 		})
+	} else if err != nil {
+		return account, err
 	}
 
 	return account, nil
