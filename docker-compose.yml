@@ -17,3 +17,12 @@ services:
       - ./files:/files
     restart: "no"
     command: "exit 0"
+
+  proc-txns-csv:
+    build:
+      context: ./
+      dockerfile: cmd/proc-txns-csv/Dockerfile
+    volumes:
+      - ./files:/files
+    restart: "no"
+    command: "exit 0"

@@ -7,8 +7,10 @@ package dao
 
 import (
 	"context"
+	"database/sql"
+	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/shopspring/decimal"
 )
 
 const createAccount = `-- name: CreateAccount :one
@@ -23,12 +25,12 @@ type CreateAccountParams struct {
 	FirstName string
 	LastName  string
 	Email     string
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
 }
 
 func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (int64, error) {
-	row := q.db.QueryRow(ctx, createAccount,
+	row := q.db.QueryRowContext(ctx, createAccount,
 		arg.FirstName,
 		arg.LastName,
 		arg.Email,
@@ -45,7 +47,7 @@ SELECT account_id, first_name, last_name, email, created_at, updated_at FROM acc
 `
 
 func (q *Queries) GetAccountByEmail(ctx context.Context, email string) (Account, error) {
-	row := q.db.QueryRow(ctx, getAccountByEmail, email)
+	row := q.db.QueryRowContext(ctx, getAccountByEmail, email)
 	var i Account
 	err := row.Scan(
 		&i.AccountID,
@@ -56,4 +58,35 @@ func (q *Queries) GetAccountByEmail(ctx context.Context, email string) (Account,
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const insertTransaction = `-- name: InsertTransaction :one
+INSERT INTO transactions
+    (account_id, operation, amount, performed_at, created_at, updated_at)
+VALUES
+    ($1, $2, $3, $4, $5, $6)
+RETURNING transaction_id
+`
+
+type InsertTransactionParams struct {
+	AccountID   int64
+	Operation   TxOperationType
+	Amount      decimal.Decimal
+	PerformedAt time.Time
+	CreatedAt   sql.NullTime
+	UpdatedAt   sql.NullTime
+}
+
+func (q *Queries) InsertTransaction(ctx context.Context, arg InsertTransactionParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, insertTransaction,
+		arg.AccountID,
+		arg.Operation,
+		arg.Amount,
+		arg.PerformedAt,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	var transaction_id int64
+	err := row.Scan(&transaction_id)
+	return transaction_id, err
 }

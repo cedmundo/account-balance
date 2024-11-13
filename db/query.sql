@@ -7,3 +7,10 @@ INSERT INTO accounts
 VALUES
     ($1, $2, $3, $4, $5)
 RETURNING account_id;
+
+-- name: InsertTransaction :one
+INSERT INTO transactions
+    (account_id, operation, amount, performed_at, created_at, updated_at)
+VALUES
+    ($1, $2, $3, $4, $5, $6)
+RETURNING transaction_id;

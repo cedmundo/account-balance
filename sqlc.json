@@ -9,7 +9,23 @@
         "go": {
           "out": "dao",
           "package": "dao",
-          "sql_package": "pgx/v5"
+          "sql_package": "database/sql",
+          "overrides": [
+            {
+              "db_type": "pg_catalog.numeric",
+              "go_type": {
+                "import": "github.com/shopspring/decimal",
+                "type": "Decimal"
+              }
+            },
+            {
+              "db_type": "numeric",
+              "go_type": {
+                "import": "github.com/shopspring/decimal",
+                "type": "Decimal"
+              }
+            }
+          ]
         }
       }
     }

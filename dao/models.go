@@ -5,10 +5,12 @@
 package dao
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/shopspring/decimal"
 )
 
 type TxOperationType string
@@ -58,16 +60,17 @@ type Account struct {
 	FirstName string
 	LastName  string
 	Email     string
-	CreatedAt pgtype.Timestamptz
-	UpdatedAt pgtype.Timestamptz
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
 }
 
 type Transaction struct {
 	TransactionID int64
-	AccountID     int32
+	AccountID     int64
 	Operation     TxOperationType
-	Amount        pgtype.Numeric
+	Amount        decimal.Decimal
 	Currency      string
-	CreatedAt     pgtype.Timestamptz
-	UpdatedAt     pgtype.Timestamptz
+	PerformedAt   time.Time
+	CreatedAt     sql.NullTime
+	UpdatedAt     sql.NullTime
 }
