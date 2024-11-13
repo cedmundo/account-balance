@@ -1,9 +1,9 @@
 package services
 
 import (
+	"common/dao"
 	"context"
 	"database/sql"
-	"github.com/cedmundo/account-balance/dao"
 	"time"
 )
 

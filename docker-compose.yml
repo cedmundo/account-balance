@@ -6,15 +6,15 @@ services:
     env_file:
       - .env
     volumes:
-      - ./data/:/var/lib/postgresql/data/
-      - ./db/schema.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./support/data/:/var/lib/postgresql/data/
+      - ./support/db/schema.sql:/docker-entrypoint-initdb.d/init.sql
 
   gen-txns-csv:
     build:
       context: ./
       dockerfile: cmd/gen-txns-csv/Dockerfile
     volumes:
-      - ./files:/files
+      - ./support/files:/support/files
     restart: "no"
     command: "exit 0"
 
@@ -23,6 +23,6 @@ services:
       context: ./
       dockerfile: cmd/proc-txns-csv/Dockerfile
     volumes:
-      - ./files:/files
+      - ./support/files:/support/files
     restart: "no"
     command: "exit 0"

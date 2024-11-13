@@ -1,12 +1,12 @@
 package main
 
 import (
+	"common/services"
 	"context"
 	"database/sql"
 	"encoding/csv"
 	"flag"
 	"fmt"
-	"github.com/cedmundo/account-balance/services"
 	"github.com/jaswdr/faker/v2"
 	"github.com/joho/godotenv"
 	"log"

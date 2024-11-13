@@ -1,10 +1,10 @@
 package services
 
 import (
+	"common/dao"
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/cedmundo/account-balance/dao"
 	"github.com/shopspring/decimal"
 	"log"
 	"regexp"

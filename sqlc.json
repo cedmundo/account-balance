@@ -3,11 +3,11 @@
   "sql": [
     {
       "engine": "postgresql",
-      "queries": ["db/query.sql"],
-      "schema": ["db/schema.sql"],
+      "queries": ["support/db/query.sql"],
+      "schema": ["support/db/schema.sql"],
       "gen": {
         "go": {
-          "out": "dao",
+          "out": "common/dao",
           "package": "dao",
           "sql_package": "database/sql",
           "overrides": [
