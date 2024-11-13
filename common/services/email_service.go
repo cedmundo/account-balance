@@ -3,10 +3,12 @@ package services
 import (
 	"bytes"
 	"common/dao"
+	"crypto/tls"
 	"embed"
 	"encoding/json"
 	"fmt"
 	"github.com/shopspring/decimal"
+	"gopkg.in/gomail.v2"
 	"html/template"
 	"io"
 	"log"
@@ -45,6 +47,11 @@ type EmailData struct {
 // EmailService manages sending emails and loading localization messages for emails.
 type EmailService struct {
 	PublicURL string
+	FromEmail string
+	SMTPHost  string
+	SMTPPort  int
+	SMTPUser  string
+	SMTPPass  string
 	Messages  map[string]map[string]string
 }
 
@@ -62,6 +69,7 @@ func (s *EmailService) LoadMessages() error {
 // SendReport sends a balance report to the specified account's email.
 func (s *EmailService) SendReport(account dao.Account, report BalanceReport) error {
 	var output io.Writer
+	var buffer *bytes.Buffer
 	accountID := account.AccountID
 	email := account.Email
 	locale := account.Locale
@@ -79,7 +87,8 @@ func (s *EmailService) SendReport(account dao.Account, report BalanceReport) err
 		}(writer)
 		output = writer
 	} else {
-		output = bytes.NewBufferString("")
+		buffer = bytes.NewBufferString("")
+		output = buffer
 	}
 
 	loc := s.Messages[locale]
@@ -101,5 +110,23 @@ func (s *EmailService) SendReport(account dao.Account, report BalanceReport) err
 		return err
 	}
 
+	// It is probably a good idea to pub/sub this process, since they are only limited email it is ok for now.
+	if buffer != nil && s.SMTPHost != "" {
+		m := gomail.NewMessage()
+		m.SetHeader("From", s.FromEmail)
+		m.SetHeader("To", account.Email)
+		m.SetHeader("Subject", loc["balance_email.title"])
+		m.SetBody("text/html", buffer.String())
+
+		// Send email via SMTP
+		d := gomail.NewDialer(s.SMTPHost, s.SMTPPort, s.SMTPUser, s.SMTPPass)
+		d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+		if err := d.DialAndSend(m); err != nil {
+			return err
+		}
+		log.Println("Sent email to", account.Email)
+	} else if s.SMTPHost == "" {
+		log.Println("Skipping email send because SMTPHost is empty")
+	}
 	return nil
 }

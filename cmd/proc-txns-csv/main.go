@@ -12,6 +12,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -26,6 +27,11 @@ var (
 	pAccountFirstName = flag.String("account-first-name", "", "Account First name to use when creating accounts (leave blank to random)")
 	pAccountLastName  = flag.String("account-last-name", "", "Account Last name to use when creating accounts (leave blank to random)")
 	pDatabaseURL      = flag.String("database-url", "", "Database to use")
+	pSMTPHost         = flag.String("smtp-host", "", "SMTP Host to use")
+	pSMTPPort         = flag.Int("smtp-port", 0, "SMTP Port to use")
+	pSMTPUsername     = flag.String("smtp-username", "", "SMTP Username to use")
+	pSMTPPassword     = flag.String("smtp-password", "", "SMTP Password to use")
+	pSMTPFromEmail    = flag.String("smtp-from-email", "", "SMTP From Email to use")
 	fake              faker.Faker
 )
 
@@ -119,6 +125,35 @@ func flagDatabase() string {
 	return *pDatabaseURL
 }
 
+func flagSMTPConfig() (string, int, string, string, string) {
+	smtpHost := *pSMTPHost
+	if *pSMTPHost == "" {
+		smtpHost = os.Getenv("SMTP_HOST")
+	}
+
+	smtpPort := *pSMTPPort
+	if *pSMTPPort == 0 {
+		smtpPort, _ = strconv.Atoi(os.Getenv("SMTP_PORT"))
+	}
+
+	smtpUsername := *pSMTPUsername
+	if *pSMTPUsername == "" {
+		smtpUsername = os.Getenv("SMTP_USERNAME")
+	}
+
+	smtpPassword := *pSMTPPassword
+	if *pSMTPPassword == "" {
+		smtpPassword = os.Getenv("SMTP_PASSWORD")
+	}
+
+	smtpFromEmail := *pSMTPFromEmail
+	if *pSMTPFromEmail == "" {
+		smtpFromEmail = os.Getenv("SMTP_FROM_EMAIL")
+	}
+
+	return smtpHost, smtpPort, smtpUsername, smtpPassword, smtpFromEmail
+}
+
 func main() {
 	flag.Parse()
 	fake = faker.NewWithSeed(rand.NewSource(flagSeed()))
@@ -136,9 +171,20 @@ func main() {
 		log.Fatal("Could not open database:", err)
 	}
 
+	// Configure and load accounts and transactions services
 	accountService := services.AccountService{Database: db}
 	transactionService := services.TransactionService{Database: db, Workers: *pWorkers, BatchSize: *pBatchSize}
-	emailService := services.EmailService{}
+
+	// Configure and load email service
+	smtpHost, smtpPort, smtpUsername, smtpPassword, smtpFromEmail := flagSMTPConfig()
+	emailService := services.EmailService{
+		PublicURL: "",
+		FromEmail: smtpFromEmail,
+		SMTPHost:  smtpHost,
+		SMTPPort:  smtpPort,
+		SMTPUser:  smtpUsername,
+		SMTPPass:  smtpPassword,
+	}
 	err = emailService.LoadMessages()
 	if err != nil {
 		log.Fatal("Could not load email messages:", err)
