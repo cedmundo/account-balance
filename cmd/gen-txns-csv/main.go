@@ -76,7 +76,7 @@ func randomDateBetween(minDate, maxDate time.Time) time.Time {
 }
 
 func randomAmountBetween(minAmount, maxAmount float64) float64 {
-	return minAmount + float64(rng.Intn(int(maxAmount-minAmount)))
+	return minAmount + float64(rng.Intn(int(maxAmount*100-minAmount*100)))/100.0
 }
 
 func main() {

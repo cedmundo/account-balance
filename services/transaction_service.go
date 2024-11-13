@@ -72,17 +72,22 @@ func (s *TransactionService) ProcessFile(ctx context.Context, accountID int64, r
 
 	// Wait for reports
 	receivedReports := 0
-	balanceReport := BalanceReport{
+	balanceReport := &BalanceReport{
 		AccountID:        accountID,
+		TotalCredit:      decimal.Zero,
+		TotalDebit:       decimal.Zero,
+		TotalBalance:     decimal.Zero,
+		AvgCreditAmount:  decimal.Zero,
+		AvgDebitAmount:   decimal.Zero,
 		TransactionCount: make(map[int]int),
 	}
 	for workerReport := range reports {
 		receivedReports += 1
 
 		// add each result
-		balanceReport.TotalDebit.Add(workerReport.TotalDebit)
+		balanceReport.TotalDebit = balanceReport.TotalDebit.Add(workerReport.TotalDebit)
+		balanceReport.TotalCredit = balanceReport.TotalCredit.Add(workerReport.TotalCredit)
 		balanceReport.CountDebit += workerReport.CountDebit
-		balanceReport.TotalCredit.Add(workerReport.TotalCredit)
 		balanceReport.CountCredit += workerReport.CountCredit
 
 		// add transaction count for each month
@@ -99,6 +104,6 @@ func (s *TransactionService) ProcessFile(ctx context.Context, accountID int64, r
 
 	balanceReport.TotalBalance = balanceReport.TotalCredit.Sub(balanceReport.TotalDebit)
 	balanceReport.AvgCreditAmount = balanceReport.TotalCredit.Div(decimal.NewFromInt(balanceReport.CountCredit))
-	balanceReport.AvgDebitAmount = balanceReport.TotalDebit.Div(decimal.NewFromInt(balanceReport.CountDebit)).Neg()
-	return balanceReport, nil
+	balanceReport.AvgDebitAmount = balanceReport.TotalDebit.Div(decimal.NewFromInt(balanceReport.CountDebit))
+	return *balanceReport, nil
 }

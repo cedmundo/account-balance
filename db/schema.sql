@@ -3,6 +3,11 @@ CREATE TABLE accounts (
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     email TEXT NOT NULL,
+    locale TEXT NOT NULL DEFAULT 'es-MX',
+    total_balance DECIMAL(16, 2),
+    avg_debit_amount DECIMAL(16, 2),
+    avg_credit_amount DECIMAL(16, 2),
+    last_balance_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE,
     updated_at TIMESTAMP WITH TIME ZONE
 );

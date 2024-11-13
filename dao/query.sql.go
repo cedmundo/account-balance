@@ -18,7 +18,7 @@ INSERT INTO accounts
     (first_name, last_name, email, created_at, updated_at)
 VALUES
     ($1, $2, $3, $4, $5)
-RETURNING account_id
+RETURNING account_id, first_name, last_name, email, locale, total_balance, avg_debit_amount, avg_credit_amount, last_balance_at, created_at, updated_at
 `
 
 type CreateAccountParams struct {
@@ -29,7 +29,7 @@ type CreateAccountParams struct {
 	UpdatedAt sql.NullTime
 }
 
-func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (int64, error) {
+func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (Account, error) {
 	row := q.db.QueryRowContext(ctx, createAccount,
 		arg.FirstName,
 		arg.LastName,
@@ -37,13 +37,25 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (i
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
-	var account_id int64
-	err := row.Scan(&account_id)
-	return account_id, err
+	var i Account
+	err := row.Scan(
+		&i.AccountID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.Locale,
+		&i.TotalBalance,
+		&i.AvgDebitAmount,
+		&i.AvgCreditAmount,
+		&i.LastBalanceAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
 }
 
 const getAccountByEmail = `-- name: GetAccountByEmail :one
-SELECT account_id, first_name, last_name, email, created_at, updated_at FROM accounts WHERE email = $1 LIMIT 1
+SELECT account_id, first_name, last_name, email, locale, total_balance, avg_debit_amount, avg_credit_amount, last_balance_at, created_at, updated_at FROM accounts WHERE email = $1 LIMIT 1
 `
 
 func (q *Queries) GetAccountByEmail(ctx context.Context, email string) (Account, error) {
@@ -54,6 +66,11 @@ func (q *Queries) GetAccountByEmail(ctx context.Context, email string) (Account,
 		&i.FirstName,
 		&i.LastName,
 		&i.Email,
+		&i.Locale,
+		&i.TotalBalance,
+		&i.AvgDebitAmount,
+		&i.AvgCreditAmount,
+		&i.LastBalanceAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

@@ -80,6 +80,8 @@ func (w *TransactionWorker) PullTransactions() {
 	now := time.Now()
 	inserted := 0
 	report := WorkerReport{
+		TotalDebit:       decimal.Zero,
+		TotalCredit:      decimal.Zero,
 		TransactionCount: make(map[int]int),
 	}
 	for transaction := range w.transactions {

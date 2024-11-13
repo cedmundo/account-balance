@@ -56,7 +56,7 @@ func flagFile() *os.File {
 
 func flagAccountEmail() string {
 	if *pAccountEmail == "" {
-		return fake.Internet().Email()
+		return "fake+" + fake.Internet().Email()
 	}
 
 	return *pAccountEmail
@@ -142,6 +142,11 @@ func main() {
 
 	accountService := services.AccountService{Database: db}
 	transactionService := services.TransactionService{Database: db, Workers: *pWorkers, BatchSize: *pBatchSize}
+	emailService := services.EmailService{}
+	err = emailService.LoadMessages()
+	if err != nil {
+		log.Fatal("Could not load email messages:", err)
+	}
 
 	account, err := accountService.FetchOrCreateAccount(backgroundContext, flagAccountEmail(), flagAccountFirstName(), flagAccountLastName())
 	if err != nil {
@@ -154,6 +159,8 @@ func main() {
 		log.Fatal("Could not process transactions:", err)
 	}
 
-	// TODO(cedmundo): Send email
-	log.Printf("%#v", report)
+	err = emailService.SendReport(account, report)
+	if err != nil {
+		log.Fatal("Could not send report:", err)
+	}
 }

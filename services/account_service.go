@@ -26,14 +26,13 @@ func (s *AccountService) FetchOrCreateAccount(ctx context.Context, email, firstN
 			UpdatedAt: sql.NullTime{Valid: true, Time: now},
 		}
 
-		account.AccountID, err = queries.CreateAccount(ctx, dao.CreateAccountParams{
+		return queries.CreateAccount(ctx, dao.CreateAccountParams{
 			FirstName: account.FirstName,
 			LastName:  account.LastName,
 			Email:     account.Email,
 			CreatedAt: account.CreatedAt,
 			UpdatedAt: account.UpdatedAt,
 		})
-		return account, err
 	}
 
 	return account, nil

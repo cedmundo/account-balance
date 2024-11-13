@@ -56,12 +56,17 @@ func (ns NullTxOperationType) Value() (driver.Value, error) {
 }
 
 type Account struct {
-	AccountID int64
-	FirstName string
-	LastName  string
-	Email     string
-	CreatedAt sql.NullTime
-	UpdatedAt sql.NullTime
+	AccountID       int64
+	FirstName       string
+	LastName        string
+	Email           string
+	Locale          string
+	TotalBalance    sql.NullString
+	AvgDebitAmount  sql.NullString
+	AvgCreditAmount sql.NullString
+	LastBalanceAt   sql.NullTime
+	CreatedAt       sql.NullTime
+	UpdatedAt       sql.NullTime
 }
 
 type Transaction struct {

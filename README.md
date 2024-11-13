@@ -71,13 +71,13 @@ The project is an entire golang package, the stand-alone commands are located at
 files and directories to work alongside docker-compose:
 ```
 cmd/
-  gen-txns-csv/   <- CSV Generator command
-  proc-txns-csv/  <- CSV Processor command
+  gen-txns-csv/   <- CSV Generator command.
+  proc-txns-csv/  <- CSV Processor command.
   
-dao/        <- Go package, (github.com/cedmundo/account-balance/dao) generated SQL utilites (from sqlc)
-data/       <- Persistent data of PostgreSQL (requires to be empty)
-db/         <- SQL Files (required for sqlc)
-files/      <- CSV and support files (automatically mounted)
-services/   <- Go package, (github.com/cedmundo/account-balance/services) that manages the business logic
+dao/        <- Go package, (github.com/cedmundo/account-balance/dao) generated SQL utilites (from sqlc).
+data/       <- Persistent data of PostgreSQL (requires to be empty).
+db/         <- SQL Files (required for sqlc).
+files/      <- CSV and support files (automatically mounted).
+services/   <- Go package, (github.com/cedmundo/account-balance/services) that manages the business logic.
+static/     <- Templates and static web content.
 ```
-
