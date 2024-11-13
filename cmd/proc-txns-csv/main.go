@@ -17,10 +17,6 @@ import (
 
 import _ "github.com/lib/pq"
 
-const (
-	sqlDriver = "postgres"
-)
-
 var (
 	pFile             = flag.String("file", "", "File to read transactions from")
 	pSeed             = flag.Int64("seed", 0, "Seed to use for random number generation")
@@ -135,7 +131,7 @@ func main() {
 	}(file)
 
 	backgroundContext := context.Background()
-	db, err := sql.Open(sqlDriver, flagDatabase())
+	db, err := sql.Open("postgres", flagDatabase())
 	if err != nil {
 		log.Fatal("Could not open database:", err)
 	}

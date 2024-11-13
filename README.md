@@ -16,7 +16,7 @@ This is a take home challenge for a software engineer position. Requirements are
 Make sure `data` directory exists (to persist database):
 
 ```
-mkdir -p data
+mkdir -p support/data
 ```
 
 Start database service running:
@@ -34,7 +34,7 @@ as storage for postgres and sometimes it brakes.
 This exercise include random generator for the transaction data. The utility is in `cmd/gen-txns-csv` and it can be built
 independently of the project. However, a docker version is available:
 ```sh
-docker compose run gen-txns-csv -file files/transactions.csv
+docker compose run gen-txns-csv -file support/files/transactions.csv
 ```
 
 There are additional parameters that change amount of transactions, dates and amount:
@@ -46,7 +46,7 @@ docker compose run gen-txns-csv -help
 
 To generate a balance report of an account, run the following command:
 ```sh
-docker compose run proc-txns-csv -file files/transactions.csv
+docker compose run proc-txns-csv -file support/files/transactions.csv
 ```
 
 Optional parameters are:
@@ -67,27 +67,30 @@ docker compose run proc-txns-csv -help
 
 ## Project structure
 
-The project is an entire golang package, the stand-alone commands are located at `cmd`, however, there are other support
-files and directories to work alongside docker-compose:
+This project has a workspace with three different main modules:
+
+* cmd - Command line tools to handle generation and processing of transactions
+* common - Data Access Objects and Services that cmd and lambdas use.
+* lambda - AWS Lambda version of the processing command.
+
 ```
-cmd/
+cmd/              <- Command line module.
   gen-txns-csv/   <- CSV Generator command.
   proc-txns-csv/  <- CSV Processor command.
   
-dao/        <- Go package, (github.com/cedmundo/account-balance/dao) generated SQL utilites (from sqlc).
-data/       <- Persistent data of PostgreSQL (requires to be empty).
-db/         <- SQL Files (required for sqlc).
-files/      <- CSV and support files (automatically mounted).
-services/   <- Go package, (github.com/cedmundo/account-balance/services) that manages the business logic.
-static/     <- Templates and static web content.
+common/       <- Common libraries and utilities.
+  dao/        <- Go package, (github.com/cedmundo/account-balance/dao) generated SQL utilites (from sqlc).
+  services/   <- Go package, (github.com/cedmundo/account-balance/services) that manages the business logic.
+    static/   <- Email templates and static content.
+
+lambda/       <- Lambda version of processor command.
+
+support/      <- Misc files.
+  data/       <- Persistent data of PostgreSQL (requires to be empty).
+  db/         <- SQL Files (required for sqlc).
+  files/      <- CSV and support files (automatically mounted).
+
 ```
-
-Commands in `cmd/` use all services defined under `services`, which include:
-
-* Account retrieval or creation
-* Transaction processing (basic operations over decimals) and inserting
-* Balance update
-* Email rendering and sending
 
 ## Decimals
 
