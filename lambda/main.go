@@ -1,7 +1,8 @@
-package lambda
+package main
 
 import (
 	"bytes"
+	"common/services"
 	"context"
 	"database/sql"
 	"encoding/csv"
@@ -17,12 +18,16 @@ import (
 	_ "github.com/lib/pq"
 )
 
+const (
+	WorkerCount = 5
+	BatchSize   = 100
+	PublicURL   = ""
+)
+
 // CSVProcessRequest request a process of a CSV file within a S3 disk.
 type CSVProcessRequest struct {
 	ObjectKey        string `json:"object_key"`
 	Bucket           string `json:"bucket"`
-	Workers          int    `json:"workers"`
-	BatchSize        int    `json:"batch_size"`
 	AccountEmail     string `json:"account_email"`
 	AccountFirstName string `json:"account_first_name"`
 	AccountLastName  string `json:"account_last_name"`
@@ -37,7 +42,7 @@ func init() {
 	// Initialize the S3 client outside the handler, during the init phase
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
+		log.Printf("unable to load SDK config, %v", err)
 	}
 
 	// Load database environment variables
@@ -84,7 +89,7 @@ func getFile(ctx context.Context, bucket, key string) ([]byte, error) {
 func handleRequest(ctx context.Context, event json.RawMessage) (map[string]any, error) {
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		log.Fatalf("Failed to open database connection: %v", err)
+		log.Printf("Failed to open database connection: %v", err)
 	}
 
 	defer func(db *sql.DB) {
@@ -95,22 +100,70 @@ func handleRequest(ctx context.Context, event json.RawMessage) (map[string]any, 
 
 	var req CSVProcessRequest
 	if err := json.Unmarshal(event, &req); err != nil {
-		log.Fatalf("Failed to unmarshal event: %v", err)
+		log.Printf("Failed to unmarshal event: %v", err)
+		return nil, err
+	}
+
+	accountService := services.AccountService{
+		Database: db,
+	}
+	transactionService := services.TransactionService{
+		Database:  db,
+		Workers:   WorkerCount,
+		BatchSize: BatchSize,
+	}
+	emailService := services.EmailService{
+		PublicURL: PublicURL,
+	}
+
+	err = emailService.LoadMessages()
+	if err != nil {
+		log.Printf("Failed to load email messages: %v", err)
+		return nil, err
+	}
+
+	account, err := accountService.FetchOrCreateAccount(ctx, req.AccountEmail, req.AccountFirstName, req.AccountLastName)
+	if err != nil {
+		log.Printf("Failed to fetch or create account: %v", err)
+		return nil, err
 	}
 
 	csvContent, err := getFile(ctx, req.Bucket, req.ObjectKey)
 	if err != nil {
-		log.Fatalf("Failed to get file from S3: %v", err)
+		log.Printf("Failed to get file from S3: %v", err)
+		return nil, err
 	}
 
 	reader := csv.NewReader(bytes.NewReader(csvContent))
-	// TODO: skip header
-	records, err := reader.ReadAll()
+	_, err = reader.Read()
 	if err != nil {
-		log.Fatalf("Failed to parse CSV file: %v", err)
+		log.Printf("Failed to read CSV header: %v", err)
+		return nil, err
 	}
 
-	return nil, nil
+	report, err := transactionService.ProcessFile(ctx, account.AccountID, reader)
+	if err != nil {
+		log.Printf("Failed to parse CSV file: %v", err)
+		return nil, err
+	}
+
+	err = emailService.SendReport(account, report)
+	if err != nil {
+		log.Printf("Failed to send report email: %v", err)
+		return nil, err
+	}
+
+	reportStr, err := json.Marshal(report)
+	if err != nil {
+		log.Printf("Failed to generate report response: %v", err)
+		return nil, err
+	}
+
+	return map[string]any{
+		"statusCode": 200,
+		"headers":    map[string]string{"Content-Type": "application/json"},
+		"body":       string(reportStr),
+	}, nil
 }
 
 func main() {

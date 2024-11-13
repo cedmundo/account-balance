@@ -22,15 +22,15 @@ type TransactionService struct {
 
 // BalanceReport general info about the account
 type BalanceReport struct {
-	AccountID        int64
-	TotalCredit      decimal.Decimal
-	CountCredit      int64
-	TotalDebit       decimal.Decimal
-	CountDebit       int64
-	TotalBalance     decimal.Decimal
-	AvgDebitAmount   decimal.Decimal
-	AvgCreditAmount  decimal.Decimal
-	TransactionCount map[int]int
+	AccountID        int64           `json:"account_id"`
+	TotalCredit      decimal.Decimal `json:"total_credit"`
+	CountCredit      int64           `json:"count_credit"`
+	TotalDebit       decimal.Decimal `json:"total_debit"`
+	CountDebit       int64           `json:"count_debit"`
+	TotalBalance     decimal.Decimal `json:"total_balance"`
+	AvgDebitAmount   decimal.Decimal `json:"avg_debit_amount"`
+	AvgCreditAmount  decimal.Decimal `json:"avg_credit_amount"`
+	TransactionCount map[int]int     `json:"transaction_count"`
 }
 
 // ProcessFile start a work group and divides the calculation of transactions
