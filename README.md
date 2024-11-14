@@ -1,5 +1,7 @@
 # Account balance
 
+![example workflow](https://github.com/github/docs/actions/workflows/main.yml/badge.svg)
+
 This is a take home challenge for a software engineer position. Requirements are:
 
 * Process account balances from a file (`support/files/transactions.csv`).
