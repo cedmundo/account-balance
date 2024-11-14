@@ -103,7 +103,11 @@ func (s *TransactionService) ProcessFile(ctx context.Context, accountID int64, r
 	}
 
 	balanceReport.TotalBalance = balanceReport.TotalCredit.Sub(balanceReport.TotalDebit)
-	balanceReport.AvgCreditAmount = balanceReport.TotalCredit.Div(decimal.NewFromInt(balanceReport.CountCredit))
-	balanceReport.AvgDebitAmount = balanceReport.TotalDebit.Div(decimal.NewFromInt(balanceReport.CountDebit))
+	if balanceReport.CountCredit != 0 {
+		balanceReport.AvgCreditAmount = balanceReport.TotalCredit.Div(decimal.NewFromInt(balanceReport.CountCredit))
+	}
+	if balanceReport.CountDebit != 0 {
+		balanceReport.AvgDebitAmount = balanceReport.TotalDebit.Div(decimal.NewFromInt(balanceReport.CountDebit))
+	}
 	return *balanceReport, nil
 }
