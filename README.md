@@ -51,12 +51,6 @@ independently of the project. However, a docker version is available:
 docker compose run gen-txns-csv -file support/files/transactions.csv
 ```
 
-To actually send an email you need to configure SMTP parameters in the `.env` file and then:
-```sh
-docker compose build
-docker compose run gen-txns-csv -file support/files/transactions.csv -account-email receiver@example.com
-```
-
 There are additional parameters that change amount of transactions, dates and amount:
 ```sh
 docker compose run gen-txns-csv -help
@@ -79,6 +73,12 @@ Optional parameters are:
 If none of them are given then a new account will be created, if `account-email` is given but
 the account does not exist, then it will be also created with fake names, if the `account-email` exist
 then that account will be used to attach all processed transactions.
+
+To actually send an email you need to configure SMTP parameters in the `.env` file and then:
+```sh
+docker compose build
+docker compose run gen-txns-csv -file support/files/transactions.csv -account-email receiver@example.com
+```
 
 Additional options are available, for example, to specify database URL or worker pool size:
 ```sh
