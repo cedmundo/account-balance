@@ -16,13 +16,12 @@ func TestTransactionService_ProcessFile(t *testing.T) {
 		name           string
 		csvContent     string
 		expectError    bool
-		expectInsert   bool
 		accountID      int64
-		expectedArgs   []driver.Value
+		expectedArgs   [][]driver.Value
 		expectedReport BalanceReport
 	}{
-		{"Invalid CSV", "", true, false, 0, []driver.Value{}, BalanceReport{}},
-		{"Invalid row", "ID,DATE,AMOUNT\nA,B,C", false, false, 1, []driver.Value{}, BalanceReport{
+		{"Invalid CSV", "", true, 0, [][]driver.Value{}, BalanceReport{}},
+		{"Invalid row", "ID,DATE,AMOUNT\nA,B,C", false, 1, [][]driver.Value{}, BalanceReport{
 			AccountID:        1,
 			TotalCredit:      decimal.Zero,
 			CountCredit:      0,
@@ -33,8 +32,8 @@ func TestTransactionService_ProcessFile(t *testing.T) {
 			AvgCreditAmount:  decimal.Zero,
 			TransactionCount: make(map[int]int),
 		}},
-		{"Single debit", "ID,DATE,AMOUNT\n1,01/01,+1.5", false, true, 1,
-			[]driver.Value{1, "credit", decimal.NewFromFloat(1.5), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()},
+		{"Single debit", "ID,DATE,AMOUNT\n1,01/01,+1.5", false, 1,
+			[][]driver.Value{{1, "credit", decimal.NewFromFloat(1.5), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()}},
 			BalanceReport{
 				AccountID:        1,
 				TotalCredit:      decimal.NewFromFloat(1.5),
@@ -47,8 +46,8 @@ func TestTransactionService_ProcessFile(t *testing.T) {
 				TransactionCount: map[int]int{1: 1},
 			},
 		},
-		{"Single credit", "ID,DATE,AMOUNT\n1,01/01,-1.5", false, true, 1,
-			[]driver.Value{1, "debit", decimal.NewFromFloat(1.5), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()},
+		{"Single credit", "ID,DATE,AMOUNT\n1,01/01,-1.5", false, 1,
+			[][]driver.Value{{1, "debit", decimal.NewFromFloat(1.5), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()}},
 			BalanceReport{
 				AccountID:        1,
 				TotalCredit:      decimal.Zero,
@@ -59,6 +58,23 @@ func TestTransactionService_ProcessFile(t *testing.T) {
 				AvgDebitAmount:   decimal.NewFromFloat(1.5),
 				AvgCreditAmount:  decimal.Zero,
 				TransactionCount: map[int]int{1: 1},
+			},
+		},
+		{"Cancelling debit and credit", "ID,DATE,AMOUNT\n1,01/01,-1.5\n2,01/02,+1.5", false, 1,
+			[][]driver.Value{
+				{1, "debit", decimal.NewFromFloat(1.5), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()},
+				{1, "credit", decimal.NewFromFloat(1.5), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()},
+			},
+			BalanceReport{
+				AccountID:        1,
+				TotalCredit:      decimal.NewFromFloat(1.5),
+				CountCredit:      1,
+				TotalDebit:       decimal.NewFromFloat(1.5),
+				CountDebit:       1,
+				TotalBalance:     decimal.NewFromFloat(0),
+				AvgDebitAmount:   decimal.NewFromFloat(1.5),
+				AvgCreditAmount:  decimal.NewFromFloat(1.5),
+				TransactionCount: map[int]int{1: 2},
 			},
 		},
 	}
@@ -72,8 +88,8 @@ func TestTransactionService_ProcessFile(t *testing.T) {
 				BatchSize: 1,
 			}
 
-			if tc.expectInsert {
-				mock.ExpectQuery(`INSERT INTO transactions`).WithArgs(tc.expectedArgs...).
+			for _, args := range tc.expectedArgs {
+				mock.ExpectQuery(`INSERT INTO transactions`).WithArgs(args...).
 					WillReturnRows(sqlmock.NewRows([]string{"transaction_id"}).AddRow(1))
 			}
 
