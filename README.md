@@ -1,6 +1,6 @@
 # Account balance
 
-![example workflow](https://github.com/github/docs/actions/workflows/main.yml/badge.svg)
+![example workflow](https://github.com/cedmundo/account-balance/actions/workflows/go.yml/badge.svg)
 
 This is a take home challenge for a software engineer position. Requirements are:
 
