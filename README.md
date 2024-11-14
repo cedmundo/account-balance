@@ -13,6 +13,20 @@ This is a take home challenge for a software engineer position. Requirements are
 
 ## Using locally with docker-compose
 
+Add and edit a `.env` file:
+
+```
+POSTGRES_USER=<username>
+POSTGRES_PASSWORD=<password>
+POSTGRES_DB=<same as username>
+
+SMTP_HOST=smtp.mandrillapp.com
+SMTP_PORT=587
+SMTP_USERNAME=<any user>
+SMTP_PASSWORD=<any key>
+SMTP_FROM_EMAIL=<any email>
+```
+
 Make sure `data` directory exists (to persist database):
 
 ```
@@ -35,6 +49,12 @@ This exercise include random generator for the transaction data. The utility is 
 independently of the project. However, a docker version is available:
 ```sh
 docker compose run gen-txns-csv -file support/files/transactions.csv
+```
+
+To actually send an email you need to configure SMTP parameters in the `.env` file and then:
+```sh
+docker compose build
+docker compose run gen-txns-csv -file support/files/transactions.csv -account-email receiver@example.com
 ```
 
 There are additional parameters that change amount of transactions, dates and amount:
