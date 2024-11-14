@@ -9,5 +9,5 @@ RUN go build -o proc-txns-csv cmd/proc-txns-csv/main.go
 FROM scratch
 COPY --from=builder /app/proc-txns-csv /proc-txns-csv
 COPY .env .env
-VOLUME ["/files"]
+VOLUME ["/support/files"]
 ENTRYPOINT ["/proc-txns-csv"]

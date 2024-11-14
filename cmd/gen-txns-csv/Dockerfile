@@ -8,5 +8,5 @@ RUN go build -o gen-txns-csv cmd/gen-txns-csv/main.go
 
 FROM scratch
 COPY --from=builder /app/gen-txns-csv /gen-txns-csv
-VOLUME ["/files"]
+VOLUME ["/support/files"]
 ENTRYPOINT ["/gen-txns-csv"]
