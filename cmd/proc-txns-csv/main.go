@@ -179,11 +179,13 @@ func main() {
 	smtpHost, smtpPort, smtpUsername, smtpPassword, smtpFromEmail := flagSMTPConfig()
 	emailService := services.EmailService{
 		PublicURL: "",
-		FromEmail: smtpFromEmail,
-		SMTPHost:  smtpHost,
-		SMTPPort:  smtpPort,
-		SMTPUser:  smtpUsername,
-		SMTPPass:  smtpPassword,
+		Sender: &services.SMTPSender{
+			FromEmail: smtpFromEmail,
+			SMTPHost:  smtpHost,
+			SMTPPort:  smtpPort,
+			SMTPUser:  smtpUsername,
+			SMTPPass:  smtpPassword,
+		},
 	}
 	err = emailService.LoadMessages()
 	if err != nil {
