@@ -1,6 +1,6 @@
 module common
 
-go 1.23.2
+go 1.23
 
 require github.com/shopspring/decimal v1.4.0
 
