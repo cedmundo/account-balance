@@ -109,7 +109,7 @@ func (s *EmailService) SendReport(account dao.Account, report BalanceReport) err
 
 	if strings.HasPrefix(email, "fake+") {
 		log.Println("Sending fake email to", email, "rendering to files/fake_email.html")
-		writer, err := os.Create("files/fake_email.html")
+		writer, err := os.Create("support/files/fake_email.html")
 		if err != nil {
 			return err
 		}
